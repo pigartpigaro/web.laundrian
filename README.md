@@ -19,14 +19,16 @@ Build produksi: `npm run build`; preview: `npm run preview`. Hentikan server den
 
 ## Git dan release
 
-Website menggunakan workflow yang sama dengan frontend POS dan API: kerja harian di `develop`, production di `main`, lalu perubahan dipromosikan melalui Pull Request.
+Website menggunakan workflow yang sama dengan frontend POS dan API: kerja harian di `develop`, production di `main`, lalu perubahan dipromosikan oleh script release setelah validasi.
 
 ```powershell
-npm run hooks:install
-npm run build
+git switch develop
+git add .
+git commit -m "jelaskan perubahan"
+git push origin develop
 npm run release
 ```
 
-`npm run build` hanya membangun website. `npm run release` perlu working tree bersih dan `develop` lokal yang sama dengan `origin/develop`; script membuat worktree sementara, memasang dependency dengan `npm ci`, lalu memvalidasi build. Script tidak merge, push, atau deploy. Setelah validasi, buat PR `develop` ke `main` dan ikuti proteksi GitHub. Push langsung ke branch production ditolak oleh hook lokal.
+`npm run release` (alias `npm run deploy`) perlu working tree bersih dan `develop` lokal yang sama dengan `origin/develop`; script membuat worktree sementara dari `origin/main`, memastikan fast-forward, memasang dependency dengan `npm ci`, lalu memvalidasi build. Jika lolos, script mendorong `main`; branch aktif tetap `develop`. `npm run release -- --dry-run` memvalidasi tanpa push. `npm run build` hanya membangun website. Push manual ke branch production ditolak oleh hook lokal.
 
 Foto utama dan galeri ditampilkan dari foto yang diunggah pemilik melalui Pengaturan website laundry di POS. Jika foto utama belum diunggah, halaman memakai `public/images/laundry-illustration.jpg` sebagai ilustrasi sementara yang diberi label; gambar ini bukan foto outlet. Galeri hanya menampilkan foto yang diunggah pemilik.

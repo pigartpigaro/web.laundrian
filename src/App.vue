@@ -113,7 +113,7 @@ const updatePageMetadata = () => {
   updateMeta('meta[property="og:title"]', 'property', document.title)
   updateMeta('meta[property="og:description"]', 'property', description)
   updateMeta('meta[property="og:image"]', 'property', heroImageUrl.value || `${window.location.origin}/images/laundry-illustration.jpg`)
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#092457')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#002170')
   let robots = document.querySelector('meta[name="robots"]')
   if (!robots) {
     robots = document.createElement('meta')

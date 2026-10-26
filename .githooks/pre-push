@@ -4,7 +4,10 @@ while read local_ref local_sha remote_ref remote_sha
 do
   case "$remote_ref" in
     refs/heads/main|refs/heads/master)
-      echo "Push langsung ke branch produksi ditolak. Push develop lalu gunakan Pull Request." >&2
+      if [ "$remote_ref" = "refs/heads/main" ] && [ "$LAUNDRIAN_RELEASE_PUSH" = "1" ] && [ "$LAUNDRIAN_RELEASE_REF" = "refs/heads/main" ]; then
+        continue
+      fi
+      echo "Push langsung ke branch produksi ditolak. Gunakan npm run release dari develop." >&2
       exit 1
       ;;
   esac

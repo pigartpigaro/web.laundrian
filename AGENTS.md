@@ -8,6 +8,6 @@
 ## Git dan release
 
 - Kerjakan perubahan pada branch `develop`; `main` hanya untuk production.
-- Jalankan `npm run hooks:install` sekali pada clone baru. Hook `.githooks` menolak commit langsung ke `main`/`master` dan push langsung ke branch tersebut.
-- `npm run build` hanya membangun website. `npm run release` memeriksa working tree bersih, branch `develop`, sinkronisasi dengan `origin/develop`, lalu menjalankan `npm ci` dan build production pada worktree sementara. Script tidak merge atau push; buat Pull Request `develop` ke `main` setelah validasi dan ikuti proteksi GitHub.
+- Jalankan `npm run hooks:install` sekali pada clone baru. Hook `.githooks` menolak commit dan push manual ke `main`/`master`; script release memakai pengecualian terbatas untuk push tervalidasi ke `main`.
+- `npm run build` hanya membangun website. `npm run release` (alias `npm run deploy`) memeriksa working tree bersih, branch `develop`, sinkronisasi dengan `origin/develop`, dan fast-forward dari `origin/main`, lalu menjalankan `npm ci` serta build pada worktree sementara. Jika lolos, script mendorong fast-forward ke `main` dan branch kerja tetap `develop`. `npm run release -- --dry-run` memvalidasi tanpa push. Hook menolak push manual ke branch production.
 - `.env.local` berisi konfigurasi lokal dan tidak dilacak Git. `.env.production` hanya boleh memuat URL publik dan konfigurasi nonrahasia.
