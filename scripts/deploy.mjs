@@ -30,6 +30,18 @@ function run(command, args, cwd, env = {}) {
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} gagal (kode ${result.status}).`)
 }
 
+function syncLocalMain(releaseSha) {
+  try {
+    const localMainSha = git(['rev-parse', '--verify', 'refs/heads/main'])
+    if (localMainSha === releaseSha) return
+    git(['merge-base', '--is-ancestor', localMainSha, releaseSha])
+    git(['update-ref', 'refs/heads/main', releaseSha, localMainSha])
+    console.log('Branch main lokal disinkronkan; branch aktif tetap develop.')
+  } catch {
+    console.warn('origin/main sudah diperbarui, tetapi main lokal tidak digeser karena tidak dapat dipastikan fast-forward.')
+  }
+}
+
 function getProductionBuildEnvironment() {
   const localEnvPath = join(root, '.env.production')
   const localValues = {}
@@ -78,6 +90,7 @@ try {
       LAUNDRIAN_RELEASE_PUSH: '1',
       LAUNDRIAN_RELEASE_REF: `refs/heads/${target}`,
     })
+    syncLocalMain(releaseSha)
     console.log(`\nRelease selesai: ${commitsToRelease} commit dari develop sudah di-fast-forward ke origin/${target}.`)
     console.log('Branch kerja tetap develop. Deploy host akan berjalan sesuai integrasi repository.')
   }
