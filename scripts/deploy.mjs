@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -30,6 +30,28 @@ function run(command, args, cwd, env = {}) {
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} gagal (kode ${result.status}).`)
 }
 
+function getProductionBuildEnvironment() {
+  const localEnvPath = join(root, '.env.production')
+  const localValues = {}
+  if (existsSync(localEnvPath)) {
+    for (const line of readFileSync(localEnvPath, 'utf8').split(/\r?\n/)) {
+      const match = line.match(/^\s*(VITE_[A-Z0-9_]+)\s*=\s*(.*?)\s*$/)
+      if (match) localValues[match[1]] = match[2].replace(/^("|')(.*)\1$/, '$2')
+    }
+  }
+
+  const buildEnvironment = Object.fromEntries(['VITE_API_BASE_URL', 'VITE_OUTLET_ID'].map(key => {
+    const value = process.env[key]?.trim() || localValues[key]?.trim()
+    if (!value) throw new Error(`${key} belum diatur. Isi environment atau file lokal .env.production.`)
+    return [key, value]
+  }))
+  const apiUrl = new URL(buildEnvironment.VITE_API_BASE_URL)
+  if (!['http:', 'https:'].includes(apiUrl.protocol) || ['localhost', '127.0.0.1', '::1'].includes(apiUrl.hostname)) {
+    throw new Error('VITE_API_BASE_URL release harus memakai URL API production, bukan localhost.')
+  }
+  return buildEnvironment
+}
+
 try {
   if (git(['status', '--porcelain'])) throw new Error('working tree harus bersih.')
   if (git(['branch', '--show-current']) !== 'develop') throw new Error('jalankan release dari branch develop.')
@@ -46,7 +68,7 @@ try {
   run('git', ['worktree', 'add', '--detach', tempWorktree, `origin/${target}`], root)
   run('git', ['merge', '--ff-only', 'origin/develop'], tempWorktree)
   run(npm, ['ci'], tempWorktree)
-  run(npm, ['run', 'build'], tempWorktree)
+  run(npm, ['run', 'build'], tempWorktree, getProductionBuildEnvironment())
 
   if (dryRun) {
     console.log(`\nDry run selesai. Build lolos; main tidak di-push. ${commitsToRelease} commit siap dirilis.`)

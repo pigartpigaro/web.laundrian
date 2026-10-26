@@ -1,9 +1,12 @@
 ﻿<script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
-const apiBase = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8020/api').replace(/\/$/, '')
-const apiOrigin = new URL(apiBase, window.location.origin).origin
-const outletId = new URLSearchParams(window.location.search).get('outlet') || import.meta.env.VITE_OUTLET_ID || '1'
+const configuredApiBase = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8020/api' : '')
+if (!configuredApiBase) throw new Error('VITE_API_BASE_URL belum dikonfigurasi untuk production.')
+const apiBase = configuredApiBase.replace(/\/$/, '')
+const apiOrigin = new URL(apiBase).origin
+const outletId = new URLSearchParams(window.location.search).get('outlet') || import.meta.env.VITE_OUTLET_ID || (import.meta.env.DEV ? '1' : '')
+if (!outletId) throw new Error('VITE_OUTLET_ID belum dikonfigurasi untuk production.')
 const outlet = ref(null)
 const loading = ref(true)
 const error = ref('')
